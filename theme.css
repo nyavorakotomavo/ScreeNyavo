@@ -1,0 +1,42 @@
+/* theme.css - Design Tokens ScreeNyavo */
+:root {
+  /* --- Structure UI --- */
+  --bg-main: #0D0714;
+  --bg-card: #1F1035;
+  --border-pixel: #3D205E;
+  --text-main: #E8DDFF;
+  --text-muted: #8E73B8;
+
+  /* --- États de Diagnostic (Pixels) --- */
+  /* 1. Fonctionnelles */
+  --state-vivant: #2ECC71;
+  --state-fiable: #27AE60;
+  --state-renaissant: #1ABC9C;
+
+  /* 2. Mortes & Physique */
+  --state-mort: #4A4A5A;
+  --state-brulee: #E67E22;
+  --state-gelee: #80DEEA;
+  --state-ephemere: #F1C40F;
+
+  /* 3. Dégradées */
+  --state-zombie: #D4AC0D;
+  --state-lente: #CA6F1E;
+  --state-instable: #F7DC6F;
+
+  /* 4. Fantômes */
+  --state-fantome: #ECF0F1;
+  --state-tape-fantome: #BDC3C7;
+  --state-bruit-blanc: #7F8C8D;
+
+  /* 5. Localisation & Infiltration */
+  --state-decalee: #AF7AC5;
+  --state-flottante: #8E44AD;
+  --state-liquide: #6C3483;
+  --state-humidite: #3498DB;
+
+  /* 6. Problématiques */
+  --state-sensible: #E74C3C;
+  --state-insensible: #7B241C;
+  --state-calibration: #5B2C6F;
+}
