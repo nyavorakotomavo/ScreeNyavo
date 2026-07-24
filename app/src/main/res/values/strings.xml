@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">ScreeNyavo</string>
+    <string name="accessibility_service_description">ScreeNyavo utilise ce service pour vous permettre de naviguer sur votre téléphone via les boutons physiques et les bordures de l\'écran si votre tactile est cassé.</string>
+</resources>
