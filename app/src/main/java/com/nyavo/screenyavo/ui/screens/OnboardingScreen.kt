@@ -15,11 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +36,7 @@ fun OnboardingScreen(
             .fillMaxSize()
             .background(BgMain)
     ) {
-        AnimatedGridBackground(pageIndex = currentPage)
+        AnimatedGridBackground()
 
         Column(
             modifier = Modifier
@@ -194,7 +190,7 @@ private fun OnboardingStepTwo() {
         targetValue = if (isDeadZoneTriggered) 12f else 0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioHighBouncy,
-            stiffness = Spring.StiffnessUnstiff
+            stiffness = Spring.StiffnessVeryLow
         ),
         label = "shakeOffset"
     )
@@ -278,7 +274,7 @@ private fun OnboardingStepFour(
         initialValue = 0.96f,
         targetValue = 1.04f,
         animationSpec = infiniteRepeatable(
-            animation = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow),
+            animation = tween(800, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
         ),
         label = "pulseScale"
@@ -353,10 +349,8 @@ private fun SpringDotIndicator(
     }
 }
 
-private Modifier.noRippleClickable(onClick: () -> Unit): Modifier = this.then(
-    Modifier.clickable(
-        interactionSource = remember { MutableInteractionSource() },
-        indication = null,
-        onClick = onClick
-    )
+private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = this.clickable(
+    interactionSource = MutableInteractionSource(),
+    indication = null,
+    onClick = onClick
 )

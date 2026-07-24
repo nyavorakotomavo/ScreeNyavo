@@ -9,9 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -19,7 +17,6 @@ import androidx.compose.ui.unit.sp
 import com.nyavo.screenyavo.ui.components.AnimatedGridBackground
 import com.nyavo.screenyavo.ui.theme.*
 import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 @Composable
 fun SplashScreen(
@@ -60,7 +57,7 @@ fun SplashScreen(
             .background(BgMain),
         contentAlignment = Alignment.Center
     ) {
-        AnimatedGridBackground(pageIndex = 0)
+        AnimatedGridBackground()
 
         Box(
             modifier = Modifier
