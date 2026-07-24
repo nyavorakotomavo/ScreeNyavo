@@ -2,533 +2,361 @@ package com.nyavo.screenyavo.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nyavo.screenyavo.ui.components.AnimatedGridBackground
 import com.nyavo.screenyavo.ui.theme.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlin.math.*
-import kotlin.random.Random
 
 @Composable
-fun OnboardingScreen(onGetStarted: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
-    var currentStep by remember { mutableStateOf(0) }
-    val stepsCount = 4
+fun OnboardingScreen(
+    onOnboardingComplete: () -> Unit
+) {
+    var currentPage by remember { mutableIntStateOf(0) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Persistent grid background
-        AnimatedGridBackground()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BgMain)
+    ) {
+        AnimatedGridBackground(pageIndex = currentPage)
 
-        // Step content
-        AnimatedContent(
-            targetState = currentStep,
-            transitionSpec = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> if (targetState > initialState) fullWidth else -fullWidth },
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                ) + fadeIn(animationSpec = spring(stiffness = Spring.StiffnessLow)) togetherWith
-                        slideOutHorizontally(
-                            targetOffsetX = { fullWidth -> if (targetState > initialState) -fullWidth else fullWidth },
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium
-                            )
-                        ) + fadeOut()
-            },
-            label = "stepTransition"
-        ) { step ->
-            when (step) {
-                0 -> StepTouchSensorTest()
-                1 -> StepDeadZoneDetection()
-                2 -> StepAlternativeNavigation()
-                3 -> StepUltimateCTA(onGetStarted = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onGetStarted()
-                })
-            }
-        }
-
-        // Navigation indicators
         Column(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                repeat(stepsCount) { index ->
-                    Box(
-                        modifier = Modifier
-                            .padding(4.dp)
-                            .size(if (index == currentStep) 12.dp else 8.dp)
-                            .clip(CircleShape)
-                            .background(if (index == currentStep) NeonCyan else BorderPixel)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            // Next button (except last step)
-            if (currentStep < stepsCount - 1) {
-                Button(
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                        currentStep++
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonCyan),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                ) {
-                    Text("Next", color = Color.Black, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    }
-}
+            Spacer(modifier = Modifier.height(48.dp))
 
-@Composable
-fun StepTouchSensorTest() {
-    val haptic = LocalHapticFeedback.current
-    // Track touch points for heat-map
-    var touchPoints by remember { mutableStateOf(listOf<Offset>()) }
-    // Physics rings
-    val rings = remember { mutableStateListOf<Ring>() }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "TOUCH SENSOR TEST",
-                style = MaterialTheme.typography.titleLarge,
-                color = NeonCyan
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Tap and hold anywhere to see live heat-map diagnostics.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = TextMuted
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            // Interactive canvas
-            Canvas(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BgCard)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = { offset ->
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                touchPoints = touchPoints + offset
-                                // Add a new expanding ring
-                                rings.add(Ring(center = offset, radius = 0f, alpha = 1f))
-                                tryAwaitRelease()
-                                touchPoints = touchPoints.filter { it != offset }
-                            }
-                        )
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Crossfade(
+                    targetState = currentPage,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    ),
+                    label = "pageTransition"
+                ) { page ->
+                    when (page) {
+                        0 -> OnboardingStepOne()
+                        1 -> OnboardingStepTwo()
+                        2 -> OnboardingStepThree()
+                        3 -> OnboardingStepFour(onOnboardingComplete)
                     }
+                }
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(bottom = 24.dp)
             ) {
-                // Draw heat-map trail
-                touchPoints.forEach { point ->
-                    drawCircle(
-                        brush = Brush.radialGradient(
-                            colors = listOf(StateVivant, Color.Transparent),
-                            center = point,
-                            radius = 60f
-                        ),
-                        radius = 60f,
-                        center = point
-                    )
-                }
-                // Draw expanding rings with physics
-                rings.forEach { ring ->
-                    drawCircle(
-                        color = NeonCyan.copy(alpha = ring.alpha),
-                        radius = ring.radius,
-                        center = ring.center,
-                        style = Stroke(width = 4f)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Live responsiveness: ${touchPoints.size} active points",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextMuted
-            )
-        }
-        // Animate rings
-        LaunchedEffect(rings.size) {
-            while (rings.isNotEmpty()) {
-                rings.forEachIndexed { index, ring ->
-                    rings[index] = ring.copy(
-                        radius = ring.radius + 15f,
-                        alpha = (ring.alpha - 0.03f).coerceIn(0f, 1f)
-                    )
-                }
-                rings.removeAll { it.alpha <= 0f }
-                delay(16) // ~60fps
-            }
-        }
-    }
-}
-
-data class Ring(val center: Offset, val radius: Float, val alpha: Float)
-
-@Composable
-fun StepDeadZoneDetection() {
-    val haptic = LocalHapticFeedback.current
-    var showGlitch by remember { mutableStateOf(false) }
-    var shakeOffset by remember { mutableStateOf(Offset.Zero) }
-
-    // Screen shake effect
-    LaunchedEffect(showGlitch) {
-        if (showGlitch) {
-            repeat(10) {
-                shakeOffset = Offset(
-                    (Random.nextFloat() - 0.5f) * 30f,
-                    (Random.nextFloat() - 0.5f) * 30f
+                SpringDotIndicator(
+                    totalSteps = 4,
+                    currentStep = currentPage,
+                    modifier = Modifier.padding(bottom = 32.dp)
                 )
-                delay(50)
-            }
-            shakeOffset = Offset.Zero
-            showGlitch = false
-        }
-    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp)
-            .graphicsLayer {
-                translationX = shakeOffset.x
-                translationY = shakeOffset.y
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "DEAD ZONE DETECTION",
-                style = MaterialTheme.typography.titleLarge,
-                color = NeonMagenta
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Tap the red zone to simulate a dead pixel cluster.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = TextMuted
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            // Dead zone grid
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BgCard)
-                    .pointerInput(Unit) {
-                        detectTapGestures { offset ->
-                            // Check if tap inside dead zone (center 100x100 area)
-                            val zoneLeft = size.width / 2 - 50f
-                            val zoneTop = size.height / 2 - 50f
-                            val zoneRight = zoneLeft + 100f
-                            val zoneBottom = zoneTop + 100f
-                            if (offset.x in zoneLeft..zoneRight && offset.y in zoneTop..zoneBottom) {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                showGlitch = true
-                            }
+                if (currentPage < 3) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Passer",
+                            color = TextMuted,
+                            fontSize = 14.sp,
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier
+                                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
+                                .padding(12.dp)
+                                .noRippleClickable { currentPage = 3 }
+                        )
+
+                        Button(
+                            onClick = { currentPage++ },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = BgCard,
+                                contentColor = TextMain
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .defaultMinSize(minHeight = 48.dp)
+                                .border(1.5.dp, BorderPixel, RoundedCornerShape(8.dp))
+                        ) {
+                            Text(
+                                text = "Suivant",
+                                fontFamily = FontFamily.Monospace,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
-            ) {
-                val center = Offset(size.width / 2, size.height / 2)
-                // Draw grid
-                for (i in 0..10) {
-                    val x = i * size.width / 10
-                    drawLine(Color.White.copy(alpha = 0.2f), Offset(x, 0f), Offset(x, size.height))
-                }
-                for (i in 0..10) {
-                    val y = i * size.height / 10
-                    drawLine(Color.White.copy(alpha = 0.2f), Offset(0f, y), Offset(size.width, y))
-                }
-                // Dead zone highlight
-                drawRect(
-                    color = StateBrulee.copy(alpha = 0.6f),
-                    topLeft = Offset(center.x - 50f, center.y - 50f),
-                    size = Size(100f, 100f)
-                )
-                // Static glitch noise if active
-                if (showGlitch) {
-                    for (i in 0..20) {
-                        val x = Random.nextFloat() * size.width
-                        val y = Random.nextFloat() * size.height
-                        drawRect(
-                            color = Color.White.copy(alpha = Random.nextFloat() * 0.8f),
-                            topLeft = Offset(x, y),
-                            size = Size(20f, 2f)
-                        )
-                    }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                if (showGlitch) "DEAD ZONE HIT - RECALIBRATING" else "Tap the orange area",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (showGlitch) NeonMagenta else TextMuted
-            )
         }
     }
 }
 
 @Composable
-fun StepAlternativeNavigation() {
-    val haptic = LocalHapticFeedback.current
-    val infiniteTransition = rememberInfiniteTransition(label = "edgeSwipe")
-    val cursorProgress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+private fun OnboardingStepOne() {
+    var isTouched by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(600)
+            isTouched = true
+            delay(1200)
+            isTouched = false
+        }
+    }
+
+    val scaleBounce by animateFloatAsState(
+        targetValue = if (isTouched) 1.25f else 1.0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessMedium
         ),
-        label = "cursorAnim"
+        label = "scaleBounce"
     )
-    // Cursor position along edges
-    val edgePath = remember {
-        listOf(
-            Offset(0f, 0f), // top-left to top-right
-            Offset(1f, 0f), // top-right to bottom-right
-            Offset(1f, 1f), // bottom-right to bottom-left
-            Offset(0f, 1f)  // bottom-left to top-left
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .graphicsLayer {
+                    scaleX = scaleBounce
+                    scaleY = scaleBounce
+                }
+                .background(if (isTouched) StateVivant else BgCard, RoundedCornerShape(16.dp))
+                .border(2.dp, if (isTouched) StateVivant else BorderPixel, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (isTouched) "100%" else "TAP",
+                color = if (isTouched) BgMain else TextMuted,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "Chaque zone de ton écran est testée.",
+            color = TextMain,
+            fontSize = 16.sp,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center
         )
     }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "ALTERNATIVE NAVIGATION",
-                style = MaterialTheme.typography.titleLarge,
-                color = NeonCyan
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Demonstrating edge-swipe gesture paths for accessibility.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = TextMuted
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(BgCard)
-            ) {
-                val w = size.width
-                val h = size.height
-                val points = listOf(
-                    Offset(0f, 0f),
-                    Offset(w, 0f),
-                    Offset(w, h),
-                    Offset(0f, h)
-                )
-                // Calculate animated position along the edge loop
-                val totalLength = 2 * (w + h)
-                val progress = cursorProgress * totalLength
-                var travelled = 0f
-                var cursorPos = Offset.Zero
-                for (i in 0..3) {
-                    val start = points[i]
-                    val end = points[(i + 1) % 4]
-                    val segmentLength = (end - start).getDistance()
-                    if (travelled + segmentLength >= progress) {
-                        val t = (progress - travelled) / segmentLength
-                        cursorPos = lerp(start, end, t)
-                        break
-                    }
-                    travelled += segmentLength
-                }
-                // Draw edge zones with glow
-                val edgeZoneWidth = 30f
-                // top
-                drawRect(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(NeonCyan.copy(alpha = 0.4f), Color.Transparent, NeonCyan.copy(alpha = 0.4f))
-                    ),
-                    topLeft = Offset(0f, 0f),
-                    size = Size(w, edgeZoneWidth)
-                )
-                // right
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(NeonCyan.copy(alpha = 0.4f), Color.Transparent, NeonCyan.copy(alpha = 0.4f))
-                    ),
-                    topLeft = Offset(w - edgeZoneWidth, 0f),
-                    size = Size(edgeZoneWidth, h)
-                )
-                // bottom
-                drawRect(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(NeonCyan.copy(alpha = 0.4f), Color.Transparent, NeonCyan.copy(alpha = 0.4f))
-                    ),
-                    topLeft = Offset(0f, h - edgeZoneWidth),
-                    size = Size(w, edgeZoneWidth)
-                )
-                // left
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(NeonCyan.copy(alpha = 0.4f), Color.Transparent, NeonCyan.copy(alpha = 0.4f))
-                    ),
-                    topLeft = Offset(0f, 0f),
-                    size = Size(edgeZoneWidth, h)
-                )
-                // Animated cursor
-                drawCircle(
-                    color = NeonMagenta,
-                    radius = 12f,
-                    center = cursorPos
-                )
-                // Trail
-                for (i in 1..10) {
-                    val fraction = i / 10f
-                    drawCircle(
-                        color = NeonMagenta.copy(alpha = 0.3f - fraction * 0.3f),
-                        radius = 8f,
-                        center = Offset(
-                            cursorPos.x - (cursorProgress * 20f * fraction),
-                            cursorPos.y - (cursorProgress * 20f * fraction)
-                        )
-                    )
-                }
-            }
-        }
-        // Haptic on edge zone touch? Could add pointer input but not mandatory.
-    }
-}
-
-fun lerp(start: Offset, end: Offset, fraction: Float): Offset {
-    return Offset(
-        start.x + (end.x - start.x) * fraction,
-        start.y + (end.y - start.y) * fraction
-    )
 }
 
 @Composable
-fun StepUltimateCTA(onGetStarted: () -> Unit) {
-    val haptic = LocalHapticFeedback.current
-    val infiniteTransition = rememberInfiniteTransition(label = "ctaBreathing")
-    val breathingScale by infiniteTransition.animateFloat(
-        initialValue = 0.95f,
-        targetValue = 1.05f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+private fun OnboardingStepTwo() {
+    var isDeadZoneTriggered by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(500)
+            isDeadZoneTriggered = true
+            delay(1300)
+            isDeadZoneTriggered = false
+        }
+    }
+
+    val shakeOffset by animateFloatAsState(
+        targetValue = if (isDeadZoneTriggered) 12f else 0f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioHighBouncy,
+            stiffness = Spring.StiffnessUnstiff
         ),
-        label = "breath"
-    )
-    val borderSweepAngle by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "sweep"
+        label = "shakeOffset"
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .offset(x = shakeOffset.dp)
+                .size(100.dp)
+                .background(if (isDeadZoneTriggered) StateMort else BgCard, RoundedCornerShape(16.dp))
+                .border(2.dp, if (isDeadZoneTriggered) StateBrulee else BorderPixel, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
             Text(
-                "READY TO CALIBRATE",
-                style = MaterialTheme.typography.titleLarge,
-                color = NeonCyan
+                text = if (isDeadZoneTriggered) "MORT" else "FAIL",
+                color = if (isDeadZoneTriggered) StateBrulee else TextMuted,
+                fontFamily = FontFamily.Monospace,
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onGetStarted()
-                },
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = breathingScale
-                        scaleY = breathingScale
-                    }
-                    .shadow(16.dp, shape = RoundedCornerShape(16.dp), ambientColor = NeonCyan, spotColor = NeonMagenta)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Transparent)
-                    .then(
-                        Modifier.drawWithContent {
-                            // Gradient sweep border
-                            drawRoundRect(
-                                brush = Brush.sweepGradient(
-                                    colors = listOf(NeonCyan, NeonMagenta, NeonCyan),
-                                    center = Offset(size.width / 2, size.height / 2)
-                                ),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(16.dp.toPx()),
-                                style = Stroke(width = 4.dp.toPx())
-                            )
-                            // Inner content
-                            drawContent()
-                        }
-                    ),
-                colors = ButtonDefaults.buttonColors(containerColor = BgCard),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text(
-                    "GET STARTED",
-                    style = TextStyle(
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        letterSpacing = 4.sp,
-                        color = NeonCyan
-                    ),
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp)
-                )
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "On identifie précisément où ça ne marche plus.",
+            color = TextMain,
+            fontSize = 16.sp,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun OnboardingStepThree() {
+    val infiniteTransition = rememberInfiniteTransition(label = "edgeGlow")
+    val edgeAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "edgeAlpha"
+    )
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(width = 140.dp, height = 180.dp)
+                .background(BgCard, RoundedCornerShape(12.dp))
+                .border(3.dp, StateVivant.copy(alpha = edgeAlpha), RoundedCornerShape(12.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .background(StateVivant, RoundedCornerShape(4.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text("SWIPE EDGE", color = BgMain, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
             }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "On te propose comment naviguer autrement.",
+            color = TextMain,
+            fontSize = 16.sp,
+            fontFamily = FontFamily.Monospace,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun OnboardingStepFour(
+    onComplete: () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "ctaPulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.04f,
+        animationSpec = infiniteRepeatable(
+            animation = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessLow),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Button(
+            onClick = onComplete,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = StateVivant,
+                contentColor = BgMain
+            ),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .graphicsLayer {
+                    scaleX = pulseScale
+                    scaleY = pulseScale
+                }
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 56.dp)
+        ) {
+            Text(
+                text = "Commencer le diagnostic",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Monospace
+            )
         }
     }
 }
+
+@Composable
+private fun SpringDotIndicator(
+    totalSteps: Int,
+    currentStep: Int,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        for (i in 0 until totalSteps) {
+            val isActive = i == currentStep
+
+            val dotWidth by animateFloatAsState(
+                targetValue = if (isActive) 28f else 10f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "dotWidth"
+            )
+
+            val dotColor by animateColorAsState(
+                targetValue = if (isActive) StateVivant else TextMuted.copy(alpha = 0.3f),
+                animationSpec = spring(stiffness = Spring.StiffnessLow),
+                label = "dotColor"
+            )
+
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .height(10.dp)
+                    .width(dotWidth.dp)
+                    .background(dotColor, CircleShape)
+            )
+        }
+    }
+}
+
+private Modifier.noRippleClickable(onClick: () -> Unit): Modifier = this.then(
+    Modifier.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
+)
