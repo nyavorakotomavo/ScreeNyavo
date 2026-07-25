@@ -7,15 +7,16 @@
         android:label="ScreeNyavo"
         android:roundIcon="@android:drawable/sym_def_app_icon"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Material.NoTitleBar">
+        android:theme="@style/Theme.ScreeNyavo">
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@android:style/Theme.Material.NoTitleBar">
+            android:theme="@style/Theme.ScreeNyavo">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        <service android:name=".service.NyavoAccessibilityService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" />
         </activity>
     </application>
 

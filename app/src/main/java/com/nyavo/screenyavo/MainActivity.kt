@@ -24,11 +24,12 @@ class MainActivity : ComponentActivity() {
                     var currentScreen by remember { mutableStateOf("splash") }
 
                     when (currentScreen) {
+                        "touchTest" -> TouchTestScreen()
                         "splash" -> SplashScreen(
                             onSplashFinished = { currentScreen = "onboarding" }
                         )
                         "onboarding" -> OnboardingScreen(
-                            onOnboardingComplete = { /* Navigation vers l'écran principal de diagnostic */ }
+                            onOnboardingComplete = { currentScreen = "touchTest" }
                         )
                     }
                 }

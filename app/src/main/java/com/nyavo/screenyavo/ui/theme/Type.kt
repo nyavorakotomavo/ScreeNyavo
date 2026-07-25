@@ -12,7 +12,7 @@ val MinecraftFontFamily = FontFamily(
     Font(R.font.minecraft, FontWeight.Normal)
 )
 
-val Typography = Typography(
+val ScreeNyavoTypography = Typography(
     bodyLarge = TextStyle(
         fontFamily = MinecraftFontFamily,
         fontWeight = FontWeight.Normal,

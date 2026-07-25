@@ -21,12 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private val BgMain = Color(0xFF0D0714)
-private val BgCard = Color(0xFF1F1035)
-private val BorderPixel = Color(0xFF3D205E)
-private val TextMain = Color(0xFFE8DDFF)
-private val StateVivant = Color(0xFF2ECC71)
+import com.nyavo.screenyavo.ui.theme.*
 
 @Composable
 fun TouchTestScreen() {
