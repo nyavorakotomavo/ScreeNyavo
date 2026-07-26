@@ -16,8 +16,8 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        <service android:name=".service.NyavoAccessibilityService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" />
         </activity>
+        <service android:name=".service.NyavoAccessibilityService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     </application>
 
 </manifest>
