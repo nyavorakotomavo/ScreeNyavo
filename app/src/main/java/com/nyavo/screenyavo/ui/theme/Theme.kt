@@ -15,6 +15,8 @@ val BorderPixel = Color(0xFF3D205E)
 val TextMain = Color(0xFFE8DDFF)
 val TextMuted = Color(0xFF8E73B8)
 
+val ThemeScreeNyavo = DarkColorScheme
+
 // États de diagnostic
 val StateVivant = Color(0xFF2ECC71)
 val StateMort = Color(0xFF4A4A5A)
