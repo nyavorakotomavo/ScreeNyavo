@@ -16,7 +16,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -90,7 +89,7 @@ fun OnboardingScreen(
                             text = "Passer",
                             color = TextMuted,
                             fontSize = 14.sp,
-                            fontFamily = FontFamily.Monospace,
+                            fontFamily = MinecraftFontFamily,
                             modifier = Modifier
                                 .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
                                 .padding(12.dp)
@@ -110,7 +109,7 @@ fun OnboardingScreen(
                         ) {
                             Text(
                                 text = "Suivant",
-                                fontFamily = FontFamily.Monospace,
+                                fontFamily = MinecraftFontFamily,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -158,7 +157,7 @@ private fun OnboardingStepOne() {
             Text(
                 text = if (isTouched) "100%" else "TAP",
                 color = if (isTouched) BgMain else TextMuted,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MinecraftFontFamily,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -167,7 +166,7 @@ private fun OnboardingStepOne() {
             text = "Chaque zone de ton écran est testée.",
             color = TextMain,
             fontSize = 16.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MinecraftFontFamily,
             textAlign = TextAlign.Center
         )
     }
@@ -207,7 +206,7 @@ private fun OnboardingStepTwo() {
             Text(
                 text = if (isDeadZoneTriggered) "MORT" else "FAIL",
                 color = if (isDeadZoneTriggered) StateBrulee else TextMuted,
-                fontFamily = FontFamily.Monospace,
+                fontFamily = MinecraftFontFamily,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -216,7 +215,7 @@ private fun OnboardingStepTwo() {
             text = "On identifie précisément où ça ne marche plus.",
             color = TextMain,
             fontSize = 16.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MinecraftFontFamily,
             textAlign = TextAlign.Center
         )
     }
@@ -259,7 +258,7 @@ private fun OnboardingStepThree() {
             text = "On te propose comment naviguer autrement.",
             color = TextMain,
             fontSize = 16.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MinecraftFontFamily,
             textAlign = TextAlign.Center
         )
     }
@@ -303,7 +302,7 @@ private fun OnboardingStepFour(
                 text = "Commencer le diagnostic",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Monospace
+                fontFamily = MinecraftFontFamily
             )
         }
     }

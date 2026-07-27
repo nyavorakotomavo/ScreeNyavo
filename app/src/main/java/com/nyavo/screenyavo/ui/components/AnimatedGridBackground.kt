@@ -7,12 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import com.nyavo.screenyavo.ui.theme.*
 import kotlin.math.*
@@ -70,6 +64,19 @@ fun AnimatedGridBackground(modifier: Modifier = Modifier) {
             style = Paint.Style.FILL
         }
     }
+    val glitchPaint = remember {
+        Paint().apply {
+            style = Paint.Style.FILL
+            isAntiAlias = true
+        }
+    }
+    val pulsePaint = remember {
+        Paint().apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+            isAntiAlias = true
+        }
+    }
 
     // Grid definition
     val columns = 12
@@ -122,10 +129,8 @@ fun AnimatedGridBackground(modifier: Modifier = Modifier) {
             val paint = if (isDead) {
                 if (flickerState.getOrElse(deadNodes.indexOf(index)) { false }) {
                     // glitch flicker: random color
-                    Paint().apply {
-                        color = if (Random.nextBoolean()) StateBrulee.hashCode() else StateGhost.hashCode()
-                        style = Paint.Style.FILL
-                    }
+                    glitchPaint.color = if (Random.nextBoolean()) StateBrulee.hashCode() else StateGhost.hashCode()
+                    glitchPaint
                 } else {
                     deadNodePaint
                 }
@@ -148,12 +153,8 @@ fun AnimatedGridBackground(modifier: Modifier = Modifier) {
         val pulseCenter = Offset(width * 0.5f, height * 0.5f)
         val maxRadius = sqrt(width * width + height * height) * 0.6f
         val currentRadius = pulseRadius * maxRadius
-        val pulsePaint = Paint().apply {
-            color = android.graphics.Color.argb(40, 0, 255, 255)
-            style = Paint.Style.STROKE
-            strokeWidth = 3f
-            isAntiAlias = true
-        }
+        pulsePaint.color = android.graphics.Color.argb(40, 0, 255, 255)
+        pulsePaint.strokeWidth = 3f
         canvas.drawCircle(pulseCenter.x, pulseCenter.y, currentRadius, pulsePaint)
 
         // Additional inner pulse ring

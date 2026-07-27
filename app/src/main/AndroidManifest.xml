@@ -17,7 +17,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".service.NyavoAccessibilityService" android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+        <service
+            android:name=".service.NyavoAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:accessibilityServiceConfig="@xml/accessibility_service_config" />
     </application>
 
 </manifest>

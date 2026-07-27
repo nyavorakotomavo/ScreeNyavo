@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -49,7 +48,7 @@ fun TouchTestScreen() {
                     text = "commencer test",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Monospace,
+                    fontFamily = MinecraftFontFamily,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
@@ -119,7 +118,7 @@ fun PixelGridTestView() {
             text = "Balayer avec\nvotre doigt",
             color = TextMain.copy(alpha = 0.35f),
             fontSize = 14.sp,
-            fontFamily = FontFamily.Monospace,
+            fontFamily = MinecraftFontFamily,
             fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
             modifier = Modifier
