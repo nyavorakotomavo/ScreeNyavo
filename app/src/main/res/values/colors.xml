@@ -1,0 +1,24 @@
+<resources>
+    <!-- Backgrounds -->
+    <color name="bg_main">#0D0714</color>
+    <color name="bg_card">#1F1035</color>
+    
+    <!-- Borders -->
+    <color name="border_pixel">#3D205E</color>
+    
+    <!-- Text -->
+    <color name="text_main">#E8DDFF</color>
+    <color name="text_muted">#8E73B8</color>
+    
+    <!-- Diagnostic states -->
+    <color name="state_vivant">#2ECC71</color>
+    <color name="state_mort">#4A4A5A</color>
+    <color name="state_brulee">#E67E22</color>
+    <color name="state_ghost">#ECF0F1</color>
+    <color name="state_humidity">#3498DB</color>
+    
+    <!-- Accents -->
+    <color name="neon_cyan">#00FFFF</color>
+    <color name="neon_magenta">#FF00FF</color>
+    <color name="neon_green">#39FF14</color>
+</resources>
