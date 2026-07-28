@@ -20,7 +20,11 @@
         <service
             android:name=".service.NyavoAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:accessibilityServiceConfig="@xml/accessibility_service_config" />
+            android:exported="false">
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
     </application>
 
 </manifest>
