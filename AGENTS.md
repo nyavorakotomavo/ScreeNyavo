@@ -59,3 +59,53 @@ Agent behavior rules:
 - Phase 6 (Prévention): not started
 - Phase 7 (Rapport/Urgence): not started
 - Phase 8 (Affichage): not started
+
+## Source layout
+- Single module `:app`, entrypoint `app/src/main/java/com/nyavo/screenyavo/MainActivity.kt`
+- Navigation: manual state-based (`splash` → `onboarding` → `touchTest`) via `mutableStateOf` in `MainActivity.kt:24`
+- Key directories (under `com/nyavo/screenyavo/`):
+  - `ui/screens/` — screen composables (`SplashScreen`, `OnboardingScreen`, `TouchTestScreen`)
+  - `ui/components/` — `AnimatedGridBackground` (native Paint on Canvas)
+  - `ui/theme/` — `ScreeNyavoTheme` (dark-only), `MinecraftFontFamily` (`res/font/minecraft.ttf`)
+  - `data/` — `DeadZoneMatrix` (grid model: 20 rows × 10 cols, `CellState` enum), `ProfileManager` (DataStore preferences)
+  - `service/` — `NyavoAccessibilityService` (stub), `AccessibilityBridge` (SharedFlow event bus)
+
+## Conventions
+- Theme colors and typography are **only** in `ui/theme/Theme.kt` and `ui/theme/Type.kt` — do not redeclare in screens
+- `res/values/colors.xml` exists but **Theme.kt is the source of truth** for Compose — XML colors are only for legacy resources
+- Typography must use `MinecraftFontFamily` from `Type.kt`, **not** `FontFamily.Monospace` (fixed in Phase 0)
+- `AnimatedGridBackground.kt` pre-allocates `gridLinePaint`, `nodePaint`, `deadNodePaint`, `scanLinePaint`, `glitchPaint`, and `pulsePaint` via `remember {}` — never allocate paints inside the draw scope
+- Accessibility service declared in `AndroidManifest.xml` but config XML reference (`res/xml/accessibility_service_config.xml`) is **not wired** in the manifest — needs `android:accessibilityServiceConfig` attribute on the service element
+- `theme.css` at project root is a web design token reference, **not used by the Android app** — ignore it when working on Compose UI
+- Before creating any new data model, verify it doesn't already exist under a different name (e.g., `DeadZoneMatrix` already covers grid state, `ProfileManager` covers user prefs)
+
+## Phase-aware workflow
+Detailed roadmap with per-phase completion criteria in `ROADMAP.md`. Current phase status is tracked at the bottom of this file.
+
+Agent behavior rules:
+1. Ask for current project state (phase, existing files) before acting — never assume from prior session
+2. One phase at a time until its completion criterion is met
+3. If a feature exceeds what's realistic for a solo mobile dev, propose a simplified version
+4. Explain how to test each feature once APK is built
+5. If Manifest changes, list modifications explicitly
+6. One question at a time in case of ambiguity
+7. After each completed phase, update this file (mark phase, note date) before starting next
+
+## Environment quirks
+- `.gitignore` covers `.gradle/`, `local.properties`, `.idea/`, `build/` — no manual exclusions needed for IDE artifacts
+- `GEMINI.md` exists but is empty (legacy file) — safe to ignore
+- Dependencies are managed via Gradle version catalog at `gradle/libs.versions.toml` — current versions: AGP 8.7.2, Kotlin 2.0.21, Compose BOM 2024.11.00
+- `proguard-rules.pro` has rules for coroutines, DataStore, and Compose — any new reflection-heavy dependency needs matching keep rules
+- `res/values/dimens.xml` defines `grid_cell_size = 42dp` which matches the hardcoded `42.dp` in `TouchTestScreen.kt` — use the resource when referencing
+
+## Roadmap progress
+<!-- Update after each completed phase -->
+- Phase 0 (Fondations): completed (2026-07-27) — design system, CI, typography fix, manifest wiring, paint pre-alloc
+- Phase 1 (Test tactile): not started
+- Phase 2 (Persistance): not started
+- Phase 3 (Accessibilité): not started
+- Phase 4 (Launcher): not started
+- Phase 5 (Clavier): not started
+- Phase 6 (Prévention): not started
+- Phase 7 (Rapport/Urgence): not started
+- Phase 8 (Affichage): not started

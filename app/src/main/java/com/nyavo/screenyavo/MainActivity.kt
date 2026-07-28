@@ -23,14 +23,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     var currentScreen by remember { mutableStateOf("splash") }
 
-                    when (currentScreen) {
-                        "touchTest" -> TouchTestScreen()
-                        "splash" -> SplashScreen(
-                            onSplashFinished = { currentScreen = "onboarding" }
-                        )
-                        "onboarding" -> OnboardingScreen(
-                            onOnboardingComplete = { currentScreen = "touchTest" }
-                        )
+when (currentScreen) {
+                            "splash" -> SplashScreen(
+                                onSplashFinished = { currentScreen = "onboarding" }
+                            )
+                            "onboarding" -> OnboardingScreen(
+                                onOnboardingComplete = { currentScreen = "touchTest" }
+                            )
+                            "touchTest" -> TouchTestScreen()
                     }
                 }
             }

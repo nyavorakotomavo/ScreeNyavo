@@ -15,6 +15,17 @@ val BorderPixel = Color(0xFF3D205E)
 val TextMain = Color(0xFFE8DDFF)
 val TextMuted = Color(0xFF8E73B8)
 
+val DarkColorScheme = darkColorScheme(
+    primary = NeonCyan,
+    secondary = NeonMagenta,
+    background = BgMain,
+    surface = BgCard,
+    onPrimary = Color.Black,
+    onSecondary = Color.Black,
+    onBackground = TextMain,
+    onSurface = TextMain
+)
+
 val ThemeScreeNyavo = DarkColorScheme
 
 // États de diagnostic
