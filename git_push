@@ -1,0 +1,182 @@
+# ─── Mode 7 : Fix Build ─────────────────────────────────────────────
+
+def get_github_token(self) -> str:
+    """Récupère le token GitHub depuis la config ou l'environnement."""
+    return self.config.get("github_token") or os.environ.get("GITHUB_TOKEN") or ""
+
+def get_workflow_status(self) -> tuple[bool, str, str]:
+    """
+    Récupère le dernier statut du workflow GitHub.
+    Retourne (succès: bool, conclusion: str, run_id: str).
+    """
+    token = self.get_github_token()
+    if not token:
+        print_error("Token GitHub manquant. Configurez 'github_token' dans ~/.projet-ia.conf")
+        sys.exit(1)
+
+    remote_url = subprocess.run(
+        ["git", "config", "--get", "remote.origin.url"],
+        capture_output=True, text=True, cwd=self.project_dir
+    ).stdout.strip()
+
+    import re
+    match = re.search(r"github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$", remote_url)
+    if not match:
+        print_error("Impossible d'identifier le dépôt GitHub depuis remote.origin.url")
+        sys.exit(1)
+    owner, repo = match.groups()
+
+    url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs?per_page=1"
+    req = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json"
+    })
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        print_error(f"Impossible de récupérer le workflow : {e}")
+        sys.exit(1)
+
+    runs = data.get("workflow_runs", [])
+    if not runs:
+        print_error("Aucun workflow trouvé.")
+        return (True, "no_run", "")
+
+    latest = runs[0]
+    run_id = latest["id"]
+    conclusion = latest.get("conclusion", "")
+    success = conclusion == "success"
+
+    return (success, conclusion, str(run_id))
+
+def fetch_workflow_logs(self, run_id: str) -> str:
+    """Récupère les logs du workflow pour un run_id donné."""
+    token = self.get_github_token()
+    if not token:
+        sys.exit(1)
+
+    remote_url = subprocess.run(
+        ["git", "config", "--get", "remote.origin.url"],
+        capture_output=True, text=True, cwd=self.project_dir
+    ).stdout.strip()
+
+    import re
+    match = re.search(r"github\.com[:/]([^/]+)/([^/]+?)(?:\.git)?$", remote_url)
+    if not match:
+        print_error("Impossible d'identifier le dépôt GitHub.")
+        sys.exit(1)
+    owner, repo = match.groups()
+
+    url = f"https://api.github.com/repos/{owner}/{repo}/actions/runs/{run_id}/logs"
+    req = urllib.request.Request(url, headers={
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            # La réponse peut être une redirection vers les logs bruts
+            if resp.status in (302, 307):
+                log_url = resp.headers.get("Location")
+            else:
+                data = json.loads(resp.read().decode())
+                log_url = data.get("download_url")
+    except Exception as e:
+        print_error(f"Erreur lors de la récupération des logs : {e}")
+        sys.exit(1)
+
+    if not log_url:
+        print_error("Impossible d'obtenir l'URL des logs.")
+        sys.exit(1)
+
+    req = urllib.request.Request(log_url)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            logs = resp.read().decode("utf-8", errors="replace")
+            return logs
+    except Exception as e:
+        print_error(f"Erreur lors du téléchargement des logs : {e}")
+        sys.exit(1)
+
+def fix_build(self) -> None:
+    """Détecte les erreurs de build GitHub, demande correction à l'IA, et push."""
+    print_info("Vérification du dernier workflow GitHub...")
+    success, conclusion, run_id = self.get_workflow_status()
+
+    if success:
+        print_success("Le dernier workflow a réussi. Rien à corriger.")
+        return
+
+    if conclusion == "cancelled":
+        print_info("Le workflow a été annulé.")
+        return
+
+    print_warning(f"Dernier workflow échoué (conclusion: {conclusion}, run_id: {run_id})")
+
+    # Récupérer les logs
+    print_info("Téléchargement des logs...")
+    logs = self.fetch_workflow_logs(run_id)
+
+    # Extraire les erreurs (dernières 100 lignes contenant "error", "fail", etc.)
+    error_lines = []
+    for line in logs.split("\n"):
+        if any(kw in line.lower() for kw in ["error", "fail", "exception", "traceback"]):
+            error_lines.append(line)
+    error_sample = "\n".join(error_lines[-100:]) if error_lines else logs[-2000:]
+
+    if not error_sample:
+        print_warning("Aucune erreur détectée dans les logs.")
+        error_sample = logs[-2000:]
+
+    # Contexte du projet
+    context = self.get_project_context()
+
+    system_prompt = (
+        "Tu es un expert en résolution d'erreurs de build et CI/CD. "
+        "On te fournit les logs d'erreur d'un workflow GitHub Actions, "
+        "ainsi que le contexte du projet. "
+        "Identifie les fichiers à corriger et propose des modifications précises. "
+        "Réponds en français avec des extraits de code corrigés."
+    )
+
+    user_prompt = (
+        f"Logs d'erreur (dernières lignes) :\n```\n{error_sample}\n```\n\n"
+        f"Contexte du projet :\n<contexte>\n{context}\n</contexte>\n\n"
+        f"Propose les modifications à apporter pour résoudre cette erreur de build."
+    )
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt},
+    ]
+
+    print_info("L'IA analyse les erreurs et propose des corrections...")
+    answer = self.call_api(messages, max_tokens=4096)
+
+    print("\nRéponse de l'IA :")
+    print(answer)
+    print()
+
+    # Extraction des blocs de code
+    import re
+    blocks = re.findall(r"```(?:\w+)?\n(.*?)```", answer, re.DOTALL)
+    if not blocks:
+        print_warning("Aucun bloc de code trouvé dans la réponse. Annulation.")
+        return
+
+    # On propose de modifier le premier fichier trouvé
+    print_info("L'IA a proposé le code suivant :")
+    print(blocks[0][:500] + "...")
+
+    filepath = input("Chemin du fichier à modifier (relatif au projet) : ").strip()
+    if not filepath:
+        print_info("Annulé.")
+        return
+
+    # Appliquer la modification
+    self.edit_file(filepath, f"Correction de build : {answer[:200]}")
+    # edit_file gère le diff, la confirmation et la sauvegarde
+
+    # Push automatique
+    print_info("Push automatique des corrections...")
+    self.git_push()
