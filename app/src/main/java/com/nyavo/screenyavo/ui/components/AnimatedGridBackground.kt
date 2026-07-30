@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.nativeCanvas
 import com.nyavo.screenyavo.ui.theme.*
 import kotlin.math.*
@@ -38,7 +39,7 @@ fun AnimatedGridBackground(modifier: Modifier = Modifier) {
     // Pre-allocated paints for performance
     val gridLinePaint = remember {
         Paint().apply {
-            color = BorderPixel.hashCode() // Int color representation
+            color = BorderPixel.toArgb()
             strokeWidth = 2f
             style = Paint.Style.STROKE
             isAntiAlias = true
@@ -46,14 +47,14 @@ fun AnimatedGridBackground(modifier: Modifier = Modifier) {
     }
     val nodePaint = remember {
         Paint().apply {
-            color = StateVivant.hashCode()
+            color = StateVivant.toArgb()
             style = Paint.Style.FILL
             isAntiAlias = true
         }
     }
     val deadNodePaint = remember {
         Paint().apply {
-            color = StateMort.hashCode()
+            color = StateMort.toArgb()
             style = Paint.Style.FILL
             isAntiAlias = true
         }
@@ -129,7 +130,7 @@ fun AnimatedGridBackground(modifier: Modifier = Modifier) {
             val paint = if (isDead) {
                 if (flickerState.getOrElse(deadNodes.indexOf(index)) { false }) {
                     // glitch flicker: random color
-                    glitchPaint.color = if (Random.nextBoolean()) StateBrulee.hashCode() else StateGhost.hashCode()
+                    glitchPaint.color = if (Random.nextBoolean()) StateBrulee.toArgb() else StateGhost.toArgb()
                     glitchPaint
                 } else {
                     deadNodePaint
