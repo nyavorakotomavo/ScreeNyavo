@@ -16,8 +16,8 @@ val TextMain = Color(0xFFE8DDFF)
 val TextMuted = Color(0xFF8E73B8)
 
 val DarkColorScheme = darkColorScheme(
-    primary = NeonCyan,
-    secondary = NeonMagenta,
+    primary = Color(0xFF6B4BA3),
+    secondary = Color(0xFF9D7CC8),
     background = BgMain,
     surface = BgCard,
     onPrimary = Color.Black,
@@ -36,13 +36,11 @@ val StateGhost = Color(0xFFECF0F1)
 val StateHumidity = Color(0xFF3498DB)
 
 // Accent neon
-val NeonCyan = Color(0xFF00FFFF)
-val NeonMagenta = Color(0xFFFF00FF)
 val NeonGreen = Color(0xFF39FF14)
 
 private val DarkColorScheme = darkColorScheme(
-    primary = NeonCyan,
-    secondary = NeonMagenta,
+    primary = Color(0xFF6B4BA3),
+    secondary = Color(0xFF9D7CC8),
     background = BgMain,
     surface = BgCard,
     onPrimary = Color.Black,
