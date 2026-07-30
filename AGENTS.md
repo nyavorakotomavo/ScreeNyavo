@@ -134,3 +134,10 @@ Agent behavior rules:
 - Phase 6 (Prévention): not started
 - Phase 7 (Rapport/Urgence): not started
 - Phase 8 (Affichage): not started
+
+RÈGLE ABSOLUE : ne jamais exécuter ./gradlew ou gradlew.bat localement.
+L'environnement Termux n'a pas le SDK Android complet et 4GB RAM est insuffisant.
+Tous les builds passent EXCLUSIVEMENT par GitHub Actions CI.
+Pour vérifier du code : lire les fichiers, analyser la syntaxe Kotlin manuellement,
+ou proposer un commit + push pour laisser la CI builder.
+Si une commande gradlew semble nécessaire, DEMANDER confirmation avant de l'exécuter.
